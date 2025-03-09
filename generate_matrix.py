@@ -2,7 +2,7 @@ import csv
 import random
 import sys
 
-def generate_matrix(n, min_val=0, max_val=100):
+def generate_matrix(n, min_val=0, max_val=1000):
     """Generates an n x n matrix filled with random integers."""
     return [[random.randint(min_val, max_val) for _ in range(n)] for _ in range(n)]
 
