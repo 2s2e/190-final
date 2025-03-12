@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
     sprintf(name2, "b%d.mat", n);
     sprintf(name1, "a%d.mat", n);
     sprintf(name2, "b%d.mat", n);
-    printf("Name1: %s\n", name1);
+    // printf("Name1: %s\n", name1);
 
     int **A, **B;
 
@@ -134,7 +134,8 @@ int main(int argc, char *argv[])
     read_matrix_from_csv(name2, &B, &n);
 
     int **C = (int **)malloc(n * sizeof(int *));
-    int *data = (int *)malloc(n * n * sizeof(int));
+
+    int *data = (int *)calloc(n * n, sizeof(int));
     for (int i = 0; i < n; i++)
     {
         C[i] = data + i * (n);
@@ -142,9 +143,14 @@ int main(int argc, char *argv[])
 
     struct timespec start, end;
 
+    int trials = 3;
+
     clock_gettime(CLOCK_REALTIME, &start);
     // the important line
-    threads_mat_mul(A, B, C, n, num_threads);
+    for (int i = 0; i < trials; i++)
+    {
+        threads_mat_mul(A, B, C, n, num_threads);
+    }
 
     clock_gettime(CLOCK_REALTIME, &end);
 
@@ -161,6 +167,7 @@ int main(int argc, char *argv[])
     {
         elapsed_time = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
     }
+    elapsed_time /= trials;
 
-    printf("Time: %f\n", elapsed_time);
+    printf("%d,%d,%d,%f\n", num_threads, n, n * n * n, elapsed_time);
 }

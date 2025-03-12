@@ -30,10 +30,10 @@ void read_matrix_from_csv(const char *filename, int ***matrix, int *n)
 
     // Allocate memory for the matrix as a contiguous block
     *matrix = (int **)malloc(*n * sizeof(int *));
-    int *data = (int *)malloc(*n * *n * sizeof(int));
+    // int *data = (int *)malloc(*n * *n * sizeof(int));
     for (int i = 0; i < *n; i++)
     {
-        (*matrix)[i] = data + i * (*n);
+        (*matrix)[i] = (int *)malloc(*n * sizeof(int));
     }
 
     // Rewind file and read the entire matrix
@@ -46,7 +46,9 @@ void read_matrix_from_csv(const char *filename, int ***matrix, int *n)
             {
                 perror("Error reading matrix");
                 fclose(file);
-                free(data);
+                // free(data);
+                for (int i = 0; i < *n; i++)
+                    free((*matrix)[i]);
                 free(*matrix);
                 exit(EXIT_FAILURE);
             }
