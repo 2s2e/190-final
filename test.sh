@@ -11,9 +11,9 @@ make
 
 # of threads, size of array
 for i in 1 2 3 4 5 6 7 8 10 12 14 16 32 64 128 256 512 1024; do 
-  touch "output_t$i.csv"
+  #touch "output_t$i.csv"
   for j in 100 200 300 400 500 600 700 800 900 1000 ; do
-    ./matrix_program $i $j | tee -a all_output.csv new_output_t$i.csv
+    ./matrix_program $i $j | tee -a naive_output.csv naive_threads_output_t$i.csv
 
   done
 done

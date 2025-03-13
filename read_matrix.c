@@ -34,6 +34,7 @@ void read_matrix_from_csv(const char *filename, int ***matrix, int *n)
     for (int i = 0; i < *n; i++)
     {
         (*matrix)[i] = (int *)malloc(*n * sizeof(int));
+        //(*matrix)[i] = data + i * *n;
     }
 
     // Rewind file and read the entire matrix
