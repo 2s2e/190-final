@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void read_matrix_from_csv(const char *filename, int ***matrix, int *n)
+void read_matrix_from_csv(const char *filename, int ***matrix, int *np)
 {
     FILE *file = fopen(filename, "r");
     if (!file)
@@ -13,46 +13,51 @@ void read_matrix_from_csv(const char *filename, int ***matrix, int *n)
     }
 
     // First, determine the matrix size by counting commas in the first row
-    char line[4096];
-    if (fgets(line, sizeof(line), file) == NULL)
-    {
-        perror("Error reading file");
-        fclose(file);
-        exit(EXIT_FAILURE);
-    }
+    // char line[4096];
+    // if (fgets(line, sizeof(line), file) == NULL)
+    // {
+    //     perror("Error reading file");
+    //     fclose(file);
+    //     exit(EXIT_FAILURE);
+    // }
 
-    *n = 1;
-    for (char *p = line; *p; p++)
-    {
-        if (*p == ',')
-            (*n)++;
-    }
+    int n = 1;
+    // for (char *p = line; *p; p++)
+    // {
+    //     if (*p == ',')
+    //         n++;
+    // }
+    //*np = n;
+    n = *np;
 
+    *matrix = (int **)malloc(n * sizeof(int *));
     // Allocate memory for the matrix as a contiguous block
-    *matrix = (int **)malloc(*n * sizeof(int *));
     // int *data = (int *)malloc(*n * *n * sizeof(int));
-    for (int i = 0; i < *n; i++)
+    for (int i = 0; i < n; i++)
     {
-        (*matrix)[i] = (int *)malloc(*n * sizeof(int));
+        (*matrix)[i] = (int *)malloc(n * sizeof(int));
         //(*matrix)[i] = data + i * *n;
     }
 
     // Rewind file and read the entire matrix
     rewind(file);
-    for (int i = 0; i < *n; i++)
+    for (int i = 0; i < n; i++)
     {
-        for (int j = 0; j < *n; j++)
+        for (int j = 0; j < n; j++)
         {
             if (fscanf(file, "%d%*c", &((*matrix)[i][j])) != 1)
             {
                 perror("Error reading matrix");
                 fclose(file);
                 // free(data);
-                for (int i = 0; i < *n; i++)
-                    free((*matrix)[i]);
-                free(*matrix);
+                // for (int i = 0; i < *n; i++)
+                //     free((*matrix)[i]);
+                // free(*matrix);
+
                 exit(EXIT_FAILURE);
             }
+            // if (j == 0)
+            //     printf("Demo: %d %d: %d, n is %d\n", i, j, (*matrix)[i][j], n);
         }
     }
 

@@ -30,13 +30,14 @@ def plot_all_graphs():
     for num in nums:
         #line graph with all the threads
         num_str = str(num)
-        data = np.genfromtxt('new_output_t' + num_str + '.csv', delimiter=',', skip_header=1)
+        data = np.genfromtxt('big_output_t' + num_str + '.csv', delimiter=',', skip_header=1)
         x1 = data[:,0]
         x2 = data[:,1]
+        x2 = [x * x * x for x in x2]
         x3 = data[:,2]
         y1 = data[:,3]
 
-        plt.plot(x3, y1)
+        plt.plot(x2, y1)
         
         
         

@@ -32,6 +32,7 @@ typedef struct mat_mul_thread_args
     int **C;
     int A_row;
     int n;
+    int z;
 } mat_mul_thread_args;
 
 // int pthread_create(pthread_t * thread,
@@ -48,6 +49,8 @@ void *mat_mul_threads_helper(void *args)
     int **C = arg->C;
     int A_row = arg->A_row;
     int n = arg->n;
+    int z = arg->z;
+    // printf("Begin work on rows %d\n", A_row);
 
     if (A_row >= n)
     {
@@ -55,12 +58,16 @@ void *mat_mul_threads_helper(void *args)
         return NULL;
     }
 
-    for (int k = 0; k < n; k++)
+    while (A_row < n)
     {
-        for (int j = 0; j < n; j++)
+        for (int k = 0; k < n; k++)
         {
-            C[A_row][k] += A[A_row][j] * B[j][k];
+            for (int j = 0; j < n; j++)
+            {
+                C[A_row][k] += A[A_row][j] * B[j][k];
+            }
         }
+        A_row += z;
     }
 
     free(arg); // Free allocated memory
@@ -72,39 +79,36 @@ void threads_mat_mul(int **A, int **B, int **C, int n, int z)
 {
     pthread_t *threads = malloc(z * sizeof(pthread_t));
 
-    for (int cur = 0; cur < n; cur += z)
+    // Spawn threads
+    for (int t = 0; t < z; t++)
     {
-        int num_threads = (n - cur >= z) ? z : (n - cur); // Handle last batch
-
-        // Spawn threads
-        for (int t = 0; t < num_threads; t++)
+        mat_mul_thread_args *args = malloc(sizeof(mat_mul_thread_args));
+        if (args == NULL)
         {
-            mat_mul_thread_args *args = malloc(sizeof(mat_mul_thread_args));
-            if (args == NULL)
-            {
-                perror("Failed to allocate memory");
-                exit(1);
-            }
-
-            args->A = A;
-            args->B = B;
-            args->C = C;
-            args->A_row = cur + t;
-            args->n = n;
-
-            if (pthread_create(&threads[t], NULL, mat_mul_threads_helper, args) != 0)
-            {
-                perror("Failed to create thread");
-                free(args);
-                exit(1);
-            }
+            perror("Failed to allocate memory");
+            exit(1);
         }
 
-        // Join threads
-        for (int t = 0; t < num_threads; t++)
+        args->A = A;
+        args->B = B;
+        args->C = C;
+        args->A_row = t;
+        args->n = n;
+        args->z = z;
+
+        // printf("Creating thread %d\n", t);
+        if (pthread_create(&threads[t], NULL, mat_mul_threads_helper, args) != 0)
         {
-            pthread_join(threads[t], NULL);
+            perror("Failed to create thread");
+            free(args);
+            exit(1);
         }
+    }
+
+    // Join threads
+    for (int t = 0; t < z; t++)
+    {
+        pthread_join(threads[t], NULL);
     }
 }
 
@@ -118,6 +122,8 @@ int main(int argc, char *argv[])
     {
         num_threads = atoi(argv[1]);
         n = atoi(argv[2]);
+        // printf("Number of threads: %d\n", num_threads);
+        // printf("Matrix dimension: %d\n", n);
     }
 
     char name1[20];
@@ -133,12 +139,15 @@ int main(int argc, char *argv[])
     read_matrix_from_csv(name1, &A, &n);
     read_matrix_from_csv(name2, &B, &n);
 
+    // printf("Successfully read matrices\n");
+
     int **C = (int **)malloc(n * sizeof(int *));
 
-    int *data = (int *)calloc(n * n, sizeof(int));
+    // int *data = (int *)calloc(n * n, sizeof(int));
     for (int i = 0; i < n; i++)
     {
-        C[i] = data + i * (n);
+        // C[i] = data + i * (n);
+        C[i] = (int *)calloc(n, sizeof(int));
     }
 
     struct timespec start, end;
@@ -147,16 +156,14 @@ int main(int argc, char *argv[])
 
     clock_gettime(CLOCK_REALTIME, &start);
     // the important line
-    for (int i = 0; i < trials; i++)
-    {
-        threads_mat_mul(A, B, C, n, num_threads);
-    }
+
+    threads_mat_mul(A, B, C, n, num_threads);
 
     clock_gettime(CLOCK_REALTIME, &end);
 
-    char name3[20];
-    sprintf(name3, "c%d.mat", n);
-    write_matrix_to_csv(name3, C, n);
+    // char name3[20];
+    // sprintf(name3, "c%d.mat", n);
+    // write_matrix_to_csv(name3, C, n);
 
     double elapsed_time;
     if (end.tv_nsec < start.tv_nsec)
@@ -169,5 +176,6 @@ int main(int argc, char *argv[])
     }
     elapsed_time /= trials;
 
-    printf("%d,%d,%d,%f\n", num_threads, n, n * n * n, elapsed_time);
+    long int num_ops = n * n * n;
+    printf("%d,%d,%ld,%f\n", num_threads, n, num_ops, elapsed_time);
 }
