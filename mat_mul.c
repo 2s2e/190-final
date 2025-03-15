@@ -62,6 +62,7 @@ void *mat_mul_threads_helper(void *args)
     {
         for (int k = 0; k < n; k++)
         {
+            C[A_row][k] = 0;
             for (int j = 0; j < n; j++)
             {
                 C[A_row][k] += A[A_row][j] * B[j][k];
@@ -146,6 +147,7 @@ void *transpose_threads_multiply_helper(void *args)
     {
         for (int k = 0; k < n; k++)
         {
+            C[A_row][k] = 0;
             for (int j = 0; j < n; j++)
             {
                 C[A_row][k] += A[A_row][j] * B[k][j];
