@@ -240,9 +240,9 @@ int main(int argc, char *argv[])
     int trials = 3;
 
     // if we want to do the transpose method
-    printf("%d\n", B[0][2]);
+    // printf("%d\n", B[0][2]);
     transpose_matrix(B, n);
-    printf("%d\n", B[0][2]);
+    // printf("%d\n", B[0][2]);
 
     clock_gettime(CLOCK_REALTIME, &start);
     // the important line
@@ -255,9 +255,9 @@ int main(int argc, char *argv[])
 
     clock_gettime(CLOCK_REALTIME, &end);
 
-    char name3[20];
-    sprintf(name3, "c%d.mat", n);
-    write_matrix_to_csv(name3, C, n);
+    // char name3[20];
+    // sprintf(name3, "c%d.mat", n);
+    // write_matrix_to_csv(name3, C, n);
 
     double elapsed_time;
     if (end.tv_nsec < start.tv_nsec)
