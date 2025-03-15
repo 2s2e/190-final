@@ -112,6 +112,89 @@ void threads_mat_mul(int **A, int **B, int **C, int n, int z)
     }
 }
 
+void transpose_matrix(int **A, int n)
+{
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = i + 1; j < n; j++)
+        {
+            int temp = A[i][j];
+            A[i][j] = A[j][i];
+            A[j][i] = temp;
+        }
+    }
+}
+
+void *transpose_threads_multiply_helper(void *args)
+{
+    mat_mul_thread_args *arg = (mat_mul_thread_args *)args;
+    int **A = arg->A;
+    int **B = arg->B;
+    int **C = arg->C;
+    int A_row = arg->A_row;
+    int n = arg->n;
+    int z = arg->z;
+    // printf("Begin work on rows %d\n", A_row);
+
+    if (A_row >= n)
+    {
+        free(arg);
+        return NULL;
+    }
+
+    while (A_row < n)
+    {
+        for (int k = 0; k < n; k++)
+        {
+            for (int j = 0; j < n; j++)
+            {
+                C[A_row][k] += A[A_row][j] * B[k][j];
+            }
+        }
+        A_row += z;
+    }
+
+    free(arg); // Free allocated memory
+    return NULL;
+}
+
+void transpose_threads_mat_mul(int **A, int **B, int **C, int n, int z)
+{
+    pthread_t *threads = malloc(z * sizeof(pthread_t));
+
+    // Spawn threads
+    for (int t = 0; t < z; t++)
+    {
+        mat_mul_thread_args *args = malloc(sizeof(mat_mul_thread_args));
+        if (args == NULL)
+        {
+            perror("Failed to allocate memory");
+            exit(1);
+        }
+
+        args->A = A;
+        args->B = B;
+        args->C = C;
+        args->A_row = t;
+        args->n = n;
+        args->z = z;
+
+        // printf("Creating thread %d\n", t);
+        if (pthread_create(&threads[t], NULL, transpose_threads_multiply_helper, args) != 0)
+        {
+            perror("Failed to create thread");
+            free(args);
+            exit(1);
+        }
+    }
+
+    // Join threads
+    for (int t = 0; t < z; t++)
+    {
+        pthread_join(threads[t], NULL);
+    }
+}
+
 int main(int argc, char *argv[])
 {
     // number of threads, dim of matrix
@@ -154,16 +237,25 @@ int main(int argc, char *argv[])
 
     int trials = 3;
 
+    // if we want to do the transpose method
+    printf("%d\n", B[0][2]);
+    transpose_matrix(B, n);
+    printf("%d\n", B[0][2]);
+
     clock_gettime(CLOCK_REALTIME, &start);
     // the important line
 
-    threads_mat_mul(A, B, C, n, num_threads);
+    for (int i = 0; i < trials; i++)
+    {
+        // threads_mat_mul(A, B, C, n, num_threads);
+        transpose_threads_mat_mul(A, B, C, n, num_threads);
+    }
 
     clock_gettime(CLOCK_REALTIME, &end);
 
-    // char name3[20];
-    // sprintf(name3, "c%d.mat", n);
-    // write_matrix_to_csv(name3, C, n);
+    char name3[20];
+    sprintf(name3, "c%d.mat", n);
+    write_matrix_to_csv(name3, C, n);
 
     double elapsed_time;
     if (end.tv_nsec < start.tv_nsec)
