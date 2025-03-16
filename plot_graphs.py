@@ -25,8 +25,7 @@ import numpy as np
 #     plt.clf()
 
 def plot_all_graphs():
-    # number of threads 
-    nums = [1, 2, 4, 8, 16, 128, 256, 512, 1024]
+    nums = [1, 2, 4, 8, 16, 128, 256, 512, 1024] # number of threads
     
     for num in nums:
         #line graph with all the threads
