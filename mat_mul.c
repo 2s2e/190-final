@@ -35,11 +35,6 @@ typedef struct mat_mul_thread_args
     int z;
 } mat_mul_thread_args;
 
-// int pthread_create(pthread_t * thread,
-//     const pthread_attr_t * attr,
-//     void * (*start_routine)(void *),
-//     void *arg);
-
 // Thread function
 void *mat_mul_threads_helper(void *args)
 {
@@ -58,6 +53,7 @@ void *mat_mul_threads_helper(void *args)
         return NULL;
     }
 
+    // keep computing rows according initial thread id "A_row", add z to A_row to get next row to compute
     while (A_row < n)
     {
         for (int k = 0; k < n; k++)
@@ -90,6 +86,7 @@ void threads_mat_mul(int **A, int **B, int **C, int n, int z)
             exit(1);
         }
 
+        // intialize the struct
         args->A = A;
         args->B = B;
         args->C = C;
@@ -211,6 +208,7 @@ int main(int argc, char *argv[])
         // printf("Matrix dimension: %d\n", n);
     }
 
+    // get the name of the matrices we read from
     char name1[20];
     char name2[20];
     sprintf(name1, "a%d.mat", n);
@@ -228,6 +226,8 @@ int main(int argc, char *argv[])
 
     int **C = (int **)malloc(n * sizeof(int *));
 
+    // Initially tried allocating C as one ibg n * n chunk of memory, this appeared to have no effect
+
     // int *data = (int *)calloc(n * n, sizeof(int));
     for (int i = 0; i < n; i++)
     {
@@ -239,7 +239,8 @@ int main(int argc, char *argv[])
 
     int trials = 3;
 
-    // if we want to do the transpose method
+    // if we want to do the transpose method, use transpose_matrix on B
+
     // printf("%d\n", B[0][2]);
     transpose_matrix(B, n);
     // printf("%d\n", B[0][2]);
@@ -247,6 +248,7 @@ int main(int argc, char *argv[])
     clock_gettime(CLOCK_REALTIME, &start);
     // the important line
 
+    // run 3 trials
     for (int i = 0; i < trials; i++)
     {
         // threads_mat_mul(A, B, C, n, num_threads);
@@ -259,6 +261,7 @@ int main(int argc, char *argv[])
     // sprintf(name3, "c%d.mat", n);
     // write_matrix_to_csv(name3, C, n);
 
+    // calculate the average elapsed time
     double elapsed_time;
     if (end.tv_nsec < start.tv_nsec)
     {
@@ -271,5 +274,7 @@ int main(int argc, char *argv[])
     elapsed_time /= trials;
 
     long int num_ops = n * n * n;
+
+    // print out the results, this will go into our csv
     printf("%d,%d,%ld,%f\n", num_threads, n, num_ops, elapsed_time);
 }

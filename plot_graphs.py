@@ -25,6 +25,7 @@ import numpy as np
 #     plt.clf()
 
 def plot_all_graphs():
+    # number of threads 
     nums = [1, 2, 4, 8, 16, 128, 256, 512, 1024]
     
     for num in nums:
@@ -33,6 +34,7 @@ def plot_all_graphs():
         data = np.genfromtxt('big2_output_t' + num_str + '.csv', delimiter=',', skip_header=1)
         x1 = data[:,0]
         x2 = data[:,1]
+        #change this depending on what metric we want to use for x 
         x2 = [2 * x * x for x in x2]
         x3 = data[:,2]
         y1 = data[:,3]
@@ -50,6 +52,7 @@ def plot_all_graphs():
     plt.clf()
 
 
+#code for plotting the graph with varying threads, fixing n to 1024
 def plot_threads():
     data = np.genfromtxt('threads_1024.csv', delimiter=',', skip_header=1)
     x1 = data[:,0]
