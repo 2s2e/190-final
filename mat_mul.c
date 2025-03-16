@@ -110,6 +110,7 @@ void threads_mat_mul(int **A, int **B, int **C, int n, int z)
     }
 }
 
+// Transpose the matrix so we can access consecutive elements in row, not column
 void transpose_matrix(int **A, int n)
 {
     for (int i = 0; i < n; i++)
@@ -123,28 +124,31 @@ void transpose_matrix(int **A, int n)
     }
 }
 
+// The function that each thread is running
 void *transpose_threads_multiply_helper(void *args)
 {
     mat_mul_thread_args *arg = (mat_mul_thread_args *)args;
     int **A = arg->A;
     int **B = arg->B;
     int **C = arg->C;
-    int A_row = arg->A_row;
+    int A_row = arg->A_row; // Start of the range of rows that this thread will calculate
     int n = arg->n;
     int z = arg->z;
     // printf("Begin work on rows %d\n", A_row);
 
+    // If this thread is trying to calculate non-existent row, free args and return null (perform cleanup)
     if (A_row >= n)
     {
         free(arg);
         return NULL;
     }
 
+    // Starting from A_row, solve every zth row
     while (A_row < n)
     {
         for (int k = 0; k < n; k++)
         {
-            C[A_row][k] = 0;
+            C[A_row][k] = 0; // Reset C matrix between each trial
             for (int j = 0; j < n; j++)
             {
                 C[A_row][k] += A[A_row][j] * B[k][j];
@@ -157,6 +161,7 @@ void *transpose_threads_multiply_helper(void *args)
     return NULL;
 }
 
+// Generates threads and assigns them to calculate for a specific row in A
 void transpose_threads_mat_mul(int **A, int **B, int **C, int n, int z)
 {
     pthread_t *threads = malloc(z * sizeof(pthread_t));
@@ -194,6 +199,7 @@ void transpose_threads_mat_mul(int **A, int **B, int **C, int n, int z)
     }
 }
 
+// Read in matricies, call and time parallel matrix multiplication
 int main(int argc, char *argv[])
 {
     // number of threads, dim of matrix
@@ -215,7 +221,6 @@ int main(int argc, char *argv[])
     sprintf(name2, "b%d.mat", n);
     sprintf(name1, "a%d.mat", n);
     sprintf(name2, "b%d.mat", n);
-    // printf("Name1: %s\n", name1);
 
     int **A, **B;
 
@@ -241,11 +246,9 @@ int main(int argc, char *argv[])
 
     // if we want to do the transpose method, use transpose_matrix on B
 
-    // printf("%d\n", B[0][2]);
     transpose_matrix(B, n);
-    // printf("%d\n", B[0][2]);
 
-    clock_gettime(CLOCK_REALTIME, &start);
+    clock_gettime(CLOCK_REALTIME, &start); // used to time latency of matrix multiply
     // the important line
 
     // run 3 trials
