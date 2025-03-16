@@ -22,7 +22,7 @@ void naive_mat_mul(int **A, int **B, int **C, int n)
             }
 
             for(int c = 0; c < n; c++){
-                int randInd = rand() % (c+1)
+                int randInd = rand() % (c+1);
 
                 int temp = access[c];
                 access[c] = access[randInd];
@@ -77,9 +77,24 @@ void *mat_mul_threads_helper(void *args)
         for (int k = 0; k < n; k++)
         {
             C[A_row][k] = 0;
+
+            int access[n];
+            
+            for(int c = 0; c < n; c++){
+                access[c] = c;
+            }
+
+            for(int c = 0; c < n; c++){
+                int randInd = rand() % (c+1);
+
+                int temp = access[c];
+                access[c] = access[randInd];
+                access[randInd] = temp;
+            }
+            
             for (int j = 0; j < n; j++)
             {
-                C[A_row][k] += A[A_row][j] * B[j][k];
+                C[A_row][k] += A[A_row][access[j]] * B[access[j]][k];
             }
         }
         A_row += z;
@@ -269,8 +284,8 @@ int main(int argc, char *argv[])
 
     clock_gettime(CLOCK_REALTIME, &end);
 
-    // char name3[20];
-    // sprintf(name3, "c%d.mat", n);
+    char name3[20];
+    sprintf(name3, "c%d_rand.mat", n);
     // write_matrix_to_csv(name3, C, n);
 
     double elapsed_time;
